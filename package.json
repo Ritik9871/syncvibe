@@ -1,0 +1,13 @@
+{
+  "name": "syncvibe",
+  "version": "1.0.0",
+  "description": "Listen to music together in real time with a friend - synced playback, voice chat, and text chat.",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "express": "^4.19.2",
+    "socket.io": "^4.7.5"
+  }
+}
