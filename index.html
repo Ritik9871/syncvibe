@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SyncVibe — listen together</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<!-- ===================== LANDING ===================== -->
+<section id="landing" class="screen">
+  <div class="landing-wrap">
+    <div class="brand">
+      <span class="brand-mark">◐◑</span>
+      <h1>SyncVibe</h1>
+    </div>
+    <p class="tagline">Same song. Same second. Two places. 4 you.</p>
+
+    <div class="card">
+      <label class="field">
+        <span>Your name</span>
+        <input id="nameInput" type="text" placeholder="e.g. Bhav Khau" maxlength="20">
+      </label>
+
+      <div class="tabs">
+        <button class="tab-btn active" data-tab="create">Create a room</button>
+        <button class="tab-btn" data-tab="join">Join a room</button>
+      </div>
+
+      <div class="tab-panel" id="tab-create">
+        <p class="hint">Start a room and share the code with your friend.</p>
+        <button id="createBtn" class="btn primary">Create room</button>
+      </div>
+
+      <div class="tab-panel hidden" id="tab-join">
+        <label class="field">
+          <span>Room code</span>
+          <input id="codeInput" type="text" placeholder="e.g. 7QXPL" maxlength="5" style="text-transform:uppercase">
+        </label>
+        <button id="joinBtn" class="btn primary">Join room</button>
+      </div>
+
+      <p id="landingError" class="error hidden"></p>
+    </div>
+
+    <p class="footnote">Runs on a server you host — your laptop or phone. Nothing streams through us.</p>
+  </div>
+</section>
+
+<!-- ===================== ROOM ===================== -->
+<section id="room" class="screen hidden">
+  <header class="room-header">
+    <div class="room-id">
+      <span class="dot" id="connDot"></span>
+      Room <strong id="roomCodeDisplay"></strong>
+      <button id="copyCodeBtn" title="Copy room code">copy</button>
+    </div>
+    <div class="peer-status" id="peerStatus">Waiting for your friend to join…</div>
+    <button id="leaveBtn" class="btn ghost small">Leave</button>
+  </header>
+
+  <main class="room-body">
+    <!-- Player column -->
+    <div class="player-col">
+      <div class="link-viz">
+        <div class="avatar you" id="youAvatar">You</div>
+        <svg class="thread" viewBox="0 0 200 40" preserveAspectRatio="none">
+          <path id="threadPath" d="M0,20 Q100,20 200,20" />
+        </svg>
+        <div class="avatar friend" id="friendAvatar">?</div>
+      </div>
+
+      <div class="source-tabs">
+        <button class="src-btn active" data-src="youtube">YouTube</button>
+        <button class="src-btn" data-src="audius">Audius <span class="soon bg">screen-off friendly</span></button>
+        <button class="src-btn" data-src="spotify" title="Coming soon" disabled>Spotify <span class="soon">soon</span></button>
+      </div>
+
+      <form id="loadForm" class="load-form">
+        <input id="videoUrlInput" type="text" placeholder="Paste a YouTube link or video ID…">
+        <button type="submit" class="btn primary">Add to queue</button>
+      </form>
+
+      <div id="audiusPanel" class="audius-panel hidden">
+        <p class="hint">Audius is a free, legal music streaming network. Search plays as real audio — it keeps going in the background much more reliably than YouTube when your screen locks.</p>
+        <form id="audiusSearchForm" class="load-form">
+          <input id="audiusSearchInput" type="text" placeholder="Search Audius for a song or artist…">
+          <button type="submit" class="btn primary">Search</button>
+        </form>
+        <ul id="audiusResults" class="audius-results"></ul>
+      </div>
+
+      <div id="playerWrap" class="player-wrap">
+        <div id="ytPlayer"></div>
+        <div id="playerPlaceholder" class="player-placeholder">
+          <p>Paste a YouTube link above to start listening together.</p>
+        </div>
+        <div id="audiusNowPlaying" class="audius-now-playing hidden">
+          <img id="audiusArtwork" class="audius-artwork" alt="">
+          <div class="audius-meta">
+            <div id="audiusTitle" class="audius-title">—</div>
+            <div id="audiusArtist" class="audius-artist">—</div>
+          </div>
+        </div>
+      </div>
+      <audio id="audiusPlayer" preload="none"></audio>
+
+      <div class="controls">
+        <button id="playPauseBtn" class="btn round" disabled>▶</button>
+        <input id="seekBar" type="range" min="0" max="100" value="0" disabled>
+        <span id="timeDisplay" class="time">0:00 / 0:00</span>
+      </div>
+      <div class="controls-row2">
+        <button id="skipBtn" class="btn ghost small" title="Skip to the next queued track">skip ⏭</button>
+        <button id="resyncBtn" class="btn ghost small" title="Force re-sync with your friend">resync</button>
+        <button id="wakeLockBtn" class="btn ghost small" title="Stop your screen from auto-locking while you listen">keep screen on: off</button>
+        <button id="audioModeBtn" class="btn ghost small" title="Hide the video, keep just the audio bar">audio mode: off</button>
+      </div>
+
+      <div class="queue-panel">
+        <div class="queue-head">Up next</div>
+        <ul id="queueList" class="queue-list">
+          <li class="queue-empty-hint">Nothing queued — add a link above and it'll play automatically once the current song ends.</li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- Side column: voice + chat -->
+    <div class="side-col">
+      <div class="voice-panel">
+        <button id="micBtn" class="btn mic">🎙️ Enable mic</button>
+        <button id="muteBtn" class="btn ghost" disabled>Mute</button>
+        <span id="voiceStatus" class="voice-status">Voice: off</span>
+        <audio id="remoteAudio" autoplay></audio>
+      </div>
+
+      <div class="chat-panel">
+        <div id="chatMessages" class="chat-messages"></div>
+        <form id="chatForm" class="chat-form">
+          <input id="chatInput" type="text" placeholder="Say something…" autocomplete="off">
+          <button type="submit" class="btn primary small">Send</button>
+        </form>
+      </div>
+    </div>
+  </main>
+</section>
+
+<script src="/socket.io/socket.io.js"></script>
+<script src="https://www.youtube.com/iframe_api"></script>
+<script src="app.js"></script>
+</body>
+</html>
